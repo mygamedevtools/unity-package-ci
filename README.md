@@ -1,4 +1,14 @@
-# Unity Package CI
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/banner-dark.png">
+    <img src="assets/readme/banner-light.png" alt="Unity Package CI" width="100%">
+  </picture>
+</p>
+
+<p align="center">
+  <a href="https://github.com/mygamedevtools/unity-package-ci/tags"><img src="https://img.shields.io/github/v/tag/mygamedevtools/unity-package-ci?sort=semver&color=E4572E" alt="Latest tag"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/mygamedevtools/unity-package-ci?color=29A19C" alt="License"></a>
+</p>
 
 Reusable GitHub Actions workflows for My GameDev Tools Unity packages: tests across every active Unity stream, semantic versioning, and packaging into a `upm` branch, a signed UPM tarball and an optional `.unitypackage`.
 
