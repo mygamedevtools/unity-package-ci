@@ -113,7 +113,9 @@ The repository also needs a `.releaserc.json` whose `@semantic-release/npm` entr
 
 ## Versioning
 
-Callers pin a major tag, `@v1`. Compatible changes move `v1` forward; a change that needs callers to edit their workflows gets `v2`. Workflows here call each other with `./`, which resolves to this repository at the same commit, so a caller always gets a consistent set.
+Callers pin a major tag, `@v1`. Compatible changes move `v1` forward; a change that needs callers to edit their workflows gets `v2`.
+
+Releases are cut by semantic-release on every push to `main`, from [Conventional Commits](https://www.conventionalcommits.org/): `fix:` releases a patch, `feat:` a minor, and a `BREAKING CHANGE:` footer a major. Changes to the shared workflows are `fix:` or `feat:`; `ci:` is for this repository's own CI and doesn't release. The release workflow then moves the major tag to the new version. Workflows here call each other with `./`, which resolves to this repository at the same commit, so a caller always gets a consistent set.
 
 ## License
 

@@ -1,0 +1,46 @@
+name: 🚀 Release
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+    - name: 📂 Checkout
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+
+    - name: 🚀 Semantic Release
+      id: release
+      uses: cycjimmy/semantic-release-action@v6
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Callers pin the major tag (@v1), so it has to follow every release
+    - name: 🏷️ Move major tag
+      if: ${{ steps.release.outputs.new_release_published == 'true' }}
+      env:
+        TAG: ${{ steps.release.outputs.new_release_git_tag }}
+        MAJOR: v${{ steps.release.outputs.new_release_major_version }}
+      run: |
+        git tag -f "$MAJOR" "$TAG^{commit}"
+        git push -f origin "refs/tags/$MAJOR"
+
+    - name: 📄 Summary
+      run: |
+        if [ '${{ steps.release.outputs.new_release_published }}' == 'true' ]; then
+          echo "ℹ️ Released \`${{ steps.release.outputs.new_release_git_tag }}\` and moved \`v${{ steps.release.outputs.new_release_major_version }}\` to it" | tee -a "$GITHUB_STEP_SUMMARY"
+        else
+          echo "ℹ️ No version released" | tee -a "$GITHUB_STEP_SUMMARY"
+        fi
