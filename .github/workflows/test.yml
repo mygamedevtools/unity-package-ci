@@ -59,11 +59,7 @@ jobs:
         id: unity-version
         run: echo "major=$(echo '${{ matrix.unityVersion }}' | grep -oE '^[0-9]+\.[0-9]+')" >> "$GITHUB_OUTPUT"
 
-      # Keyed by stream (6000.3) rather than by patch (6000.3.25f1), so a new patch
-      # restores the previous patch's Library and imports warm. A cold import runs the
-      # Crunch texture compressor, which aborts the Linux editor in batch mode about half
-      # the time (Unity issue UUM-150055). Each patch still saves under its own full key,
-      # so the stream's cache keeps moving forward instead of freezing at its first patch.
+      # Restored by stream, so a new patch imports warm and skips Crunch (UUM-150055).
       - uses: actions/cache@v5
         with:
           path: Library
