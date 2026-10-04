@@ -55,16 +55,21 @@ jobs:
             code:
               - '**.cs'
 
-      - uses: actions/cache@v5
-        with:
-          path: Library
-          key: Library-${{ matrix.unityVersion }}-${{ inputs.test-mode }}
-          restore-keys: |
-            Library-${{ matrix.unityVersion }}-
-
       - name: Extract Unity major version
         id: unity-version
         run: echo "major=$(echo '${{ matrix.unityVersion }}' | grep -oE '^[0-9]+\.[0-9]+')" >> "$GITHUB_OUTPUT"
+
+      # Keyed by stream (6000.3) rather than by patch (6000.3.25f1), so a new patch
+      # restores the previous patch's Library and imports warm. A cold import runs the
+      # Crunch texture compressor, which aborts the Linux editor in batch mode about half
+      # the time (Unity issue UUM-150055). Each patch still saves under its own full key,
+      # so the stream's cache keeps moving forward instead of freezing at its first patch.
+      - uses: actions/cache@v5
+        with:
+          path: Library
+          key: Library-${{ steps.unity-version.outputs.major }}-${{ inputs.test-mode }}-${{ matrix.unityVersion }}
+          restore-keys: |
+            Library-${{ steps.unity-version.outputs.major }}-${{ inputs.test-mode }}-
 
       # A project that needs different packages on an older stream keeps a
       # Packages/manifest.<stream>.json next to its manifest, named either
