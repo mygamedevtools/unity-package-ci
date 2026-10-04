@@ -31,6 +31,7 @@ Each package repository keeps only short caller workflows with its own triggers 
 | `coverage-assemblies` | test | every assembly | Coverage assembly filter, e.g. `+MyGameDevTools.SceneLoading`. |
 | `test-mode` | test | `all` | `playmode`, `editmode` or `all`. |
 | `version-streams` | test | auto | Comma-separated streams to pin instead, e.g. `6000.0,6000.3`. |
+| `graphics` | test | `false` | Start the editor with a graphics device. Leave it off unless a test needs rendering: the runner has no GPU, so each frame is drawn in software. |
 | `package-path` | versioning, packaging | `.releaserc.json` | The package directory. Empty reads `pkgRoot` from `@semantic-release/npm`. |
 | `unitypackage-export-method` | versioning, packaging | none | A static method that exports a `.unitypackage`, e.g. `PackageExporter.ExportPackage`. Empty skips it. |
 | `publish` | packaging | `true` | `false` builds, signs and verifies everything without pushing the `upm` branch or touching a release. |

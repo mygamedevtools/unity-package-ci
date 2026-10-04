@@ -17,6 +17,11 @@ on:
         required: false
         default: ''
         type: string
+      graphics:
+        description: 'Start the editor with a graphics device. Off by default: the runner has no GPU, so every play mode frame is rendered in software.'
+        required: false
+        default: false
+        type: boolean
     secrets:
       UNITY_LICENSE:
         required: true
@@ -95,6 +100,9 @@ jobs:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: Unity ${{ matrix.unityVersion }} ${{ inputs.test-mode }} Test Results
           coverageOptions: ${{ inputs.coverage-assemblies != '' && format('generateAdditionalMetrics;assemblyFilters:{0}', inputs.coverage-assemblies) || 'generateAdditionalMetrics' }}
+          # Without a GPU the editor renders through llvmpipe, which made scene-loader's
+          # play mode suite take 6 to 18 minutes instead of seconds.
+          customParameters: ${{ !inputs.graphics && '-nographics' || '' }}
 
       - name: Upload Coverage to Codecov
         if: steps.changes.outputs.code == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
