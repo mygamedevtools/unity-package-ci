@@ -55,16 +55,17 @@ jobs:
             code:
               - '**.cs'
 
-      - uses: actions/cache@v5
-        with:
-          path: Library
-          key: Library-${{ matrix.unityVersion }}-${{ inputs.test-mode }}
-          restore-keys: |
-            Library-${{ matrix.unityVersion }}-
-
       - name: Extract Unity major version
         id: unity-version
         run: echo "major=$(echo '${{ matrix.unityVersion }}' | grep -oE '^[0-9]+\.[0-9]+')" >> "$GITHUB_OUTPUT"
+
+      # Restored by stream, so a new patch imports warm and skips Crunch (UUM-150055).
+      - uses: actions/cache@v5
+        with:
+          path: Library
+          key: Library-${{ steps.unity-version.outputs.major }}-${{ inputs.test-mode }}-${{ matrix.unityVersion }}
+          restore-keys: |
+            Library-${{ steps.unity-version.outputs.major }}-${{ inputs.test-mode }}-
 
       # A project that needs different packages on an older stream keeps a
       # Packages/manifest.<stream>.json next to its manifest, named either
