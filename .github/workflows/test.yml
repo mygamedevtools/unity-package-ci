@@ -81,6 +81,8 @@ jobs:
           for candidate in "Packages/manifest.$STREAM.json" "Packages/manifest.${STREAM/#6000./6.}.json"; do
             if [ -f "$candidate" ]; then
               cp "$candidate" Packages/manifest.json
+              # The lock file can pin packages this stream doesn't have.
+              rm -f Packages/packages-lock.json
               echo "Using $candidate"
               break
             fi
