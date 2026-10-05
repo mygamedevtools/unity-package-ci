@@ -13,7 +13,7 @@ on:
         required: false
         type: boolean
       package-path:
-        description: 'Path to the package directory. Empty = the pkgRoot of @semantic-release/npm in .releaserc.json.'
+        description: 'Path to the package directory. Empty = the pkgRoot of @semantic-release/npm in .releaserc.json. Required when the repository has no .releaserc.json.'
         required: false
         default: ''
         type: string
@@ -51,12 +51,55 @@ jobs:
     outputs:
       new_release_published: ${{ steps.release.outputs.new_release_published }}
       new_release_version: ${{ steps.release.outputs.new_release_version }}
+      package-path: ${{ steps.config.outputs.package-path }}
     steps:
     - name: 📂 Checkout
       uses: actions/checkout@v5
       with:
         fetch-depth: 0
         persist-credentials: false
+
+    # A repository can keep its own .releaserc.json. Without one, the standard config is
+    # generated here from package-path, so every package releases the same way.
+    - name: 🧩 Resolve Release Config
+      id: config
+      run: |
+        PACKAGE_PATH='${{ inputs.package-path }}'
+
+        if [ -f .releaserc.json ]; then
+          if [ -z "$PACKAGE_PATH" ]; then
+            PACKAGE_PATH=$(jq -r '.plugins[] | select(type == "array" and .[0] == "@semantic-release/npm") | .[1].pkgRoot' .releaserc.json)
+          fi
+          echo "Using the repository's .releaserc.json"
+        else
+          if [ -z "$PACKAGE_PATH" ]; then
+            echo "::error::The repository has no .releaserc.json, so the package-path input is required"
+            exit 1
+          fi
+
+          jq -n --arg pkg "$PACKAGE_PATH" '{
+            branches: ["main", { name: "feat/*", prerelease: "pre" }, { name: "fix/*", prerelease: "pre" }],
+            tagFormat: "${version}",
+            plugins: [
+              ["@semantic-release/commit-analyzer", { preset: "angular" }],
+              "@semantic-release/release-notes-generator",
+              ["@semantic-release/changelog", { changelogTitle: "# Changelog" }],
+              ["@semantic-release/npm", { npmPublish: false, pkgRoot: $pkg }],
+              ["@semantic-release/git", {
+                assets: [($pkg + "/package.json"), "CHANGELOG.md"],
+                message: "ci(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+              }],
+              "@semantic-release/github"
+            ]
+          }' > .releaserc.json
+          echo "Generated .releaserc.json for $PACKAGE_PATH"
+        fi
+
+        if [ ! -f "$PACKAGE_PATH/package.json" ]; then
+          echo "::error::No package.json at $PACKAGE_PATH"
+          exit 1
+        fi
+        echo "package-path=$PACKAGE_PATH" >> "$GITHUB_OUTPUT"
 
     # Removes the git plugin from semantic release so it doesn't generate a new commit
     - name: ✂️ Disable semantic release commit
@@ -88,6 +131,6 @@ jobs:
     uses: ./.github/workflows/packaging.yml
     with:
       version: ${{ needs.semantic-release.outputs.new_release_version }}
-      package-path: ${{ inputs.package-path }}
+      package-path: ${{ needs.semantic-release.outputs.package-path }}
       unitypackage-export-method: ${{ inputs.unitypackage-export-method }}
     secrets: inherit

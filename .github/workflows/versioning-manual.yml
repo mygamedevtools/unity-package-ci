@@ -12,7 +12,7 @@ on:
         type: boolean
         default: false
       package-path:
-        description: 'Path to the package directory. Empty = the pkgRoot of @semantic-release/npm in .releaserc.json.'
+        description: 'Path to the package directory. Empty = the pkgRoot of @semantic-release/npm in .releaserc.json. Required when the repository has no .releaserc.json.'
         required: false
         default: ''
         type: string

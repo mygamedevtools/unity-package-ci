@@ -19,7 +19,7 @@ Each package repository keeps only short caller workflows with its own triggers 
 | Workflow | Does |
 |---|---|
 | `test.yml` | Detects the Unity versions to test, runs the tests on each with game-ci, uploads coverage to Codecov, and opens an issue when a scheduled run fails. |
-| `versioning-semver.yml` | Runs semantic-release from the repository's `.releaserc.json`, then packages the new version. |
+| `versioning-semver.yml` | Runs semantic-release with the standard config (or the repository's own `.releaserc.json`), then packages the new version. |
 | `versioning-manual.yml` | Creates a `-pre.N` prerelease from a chosen bump type, then packages it. |
 | `packaging.yml` | Builds the `upm` branch and `upm/<version>` tag, a signed UPM tarball, and optionally a `.unitypackage`, and attaches them to the release. |
 | `detect-unity-versions.yml` | Resolves every active LTS stream plus the latest non-LTS stable stream to a `unityci/editor` image version. |
@@ -32,7 +32,7 @@ Each package repository keeps only short caller workflows with its own triggers 
 | `test-mode` | test | `all` | `playmode`, `editmode` or `all`. |
 | `version-streams` | test | auto | Comma-separated streams to pin instead, e.g. `6000.0,6000.3`. |
 | `graphics` | test | `false` | Start the editor with a graphics device. Leave it off unless a test needs rendering: the runner has no GPU, so each frame is drawn in software. |
-| `package-path` | versioning, packaging | `.releaserc.json` | The package directory. Empty reads `pkgRoot` from `@semantic-release/npm`. |
+| `package-path` | versioning, packaging | `.releaserc.json` | The package directory, e.g. `Packages/com.mygamedevtools.my-package`. Empty reads `pkgRoot` from the repository's `.releaserc.json`, so it is required when there is none. |
 | `unitypackage-export-method` | versioning, packaging | none | A static method that exports a `.unitypackage`, e.g. `PackageExporter.ExportPackage`. Empty skips it. |
 | `publish` | packaging | `true` | `false` builds, signs and verifies everything without pushing the `upm` branch or touching a release. |
 
@@ -86,6 +86,8 @@ on:
 jobs:
   release:
     uses: mygamedevtools/unity-package-ci/.github/workflows/versioning-semver.yml@v1
+    with:
+      package-path: Packages/com.mygamedevtools.my-package
     secrets: inherit
 ```
 
@@ -107,10 +109,11 @@ jobs:
     uses: mygamedevtools/unity-package-ci/.github/workflows/versioning-manual.yml@v1
     with:
       bumpType: ${{ inputs.bumpType }}
+      package-path: Packages/com.mygamedevtools.my-package
     secrets: inherit
 ```
 
-The repository also needs a `.releaserc.json` whose `@semantic-release/npm` entry sets `pkgRoot` to the package directory, with `npmPublish: false`.
+Releases use one standard semantic-release config, generated at release time from `package-path`: Angular commit conventions, prereleases from `feat/*` and `fix/*` branches, tags without a `v` prefix, a `CHANGELOG.md` at the repository root, and a `ci(release)` commit that bumps `package.json`. A repository that needs something different can commit its own `.releaserc.json`, which is then used as is; `package-path` can be left empty in that case, since it is read from the file's `pkgRoot`.
 
 ## Versioning
 
