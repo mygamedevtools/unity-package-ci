@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/mygamedevtools/unity-package-ci/releases/latest"><img src="https://img.shields.io/github/v/release/mygamedevtools/unity-package-ci?sort=semver&color=E4572E" alt="Latest release"></a>
+  <a href="https://github.com/mygamedevtools/unity-package-ci/releases/latest"><img src="https://img.shields.io/github/v/release/mygamedevtools/unity-package-ci?sort=semver&color=29A19C" alt="Latest release"></a>
   <a href="https://github.com/mygamedevtools/unity-package-ci/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/mygamedevtools/unity-package-ci/release.yml?branch=main&label=release" alt="Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/mygamedevtools/unity-package-ci?color=29A19C" alt="License"></a>
 </p>
