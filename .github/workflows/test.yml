@@ -81,9 +81,7 @@ jobs:
           for candidate in "Packages/manifest.$STREAM.json" "Packages/manifest.${STREAM/#6000./6.}.json"; do
             if [ -f "$candidate" ]; then
               cp "$candidate" Packages/manifest.json
-              # The committed lock file was resolved by the project's own editor. It can
-              # pin built-in packages an older stream doesn't have, such as
-              # com.unity.editorcoroutines@6.6.0, so let this editor resolve its own.
+              # The lock file can pin packages this stream doesn't have.
               rm -f Packages/packages-lock.json
               echo "Using $candidate"
               break
