@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       package-path:
-        description: 'Path to the package directory. Empty = the pkgRoot of @semantic-release/npm in .releaserc.json.'
+        description: 'Path to the package directory. Empty = the pkgRoot of @semantic-release/npm in .releaserc.json. Required when the repository has no .releaserc.json.'
         required: false
         default: ''
         type: string
@@ -57,6 +57,10 @@ jobs:
       run: |
         PACKAGE_PATH='${{ inputs.package-path }}'
         if [ -z "$PACKAGE_PATH" ]; then
+          if [ ! -f .releaserc.json ]; then
+            echo "::error::The repository has no .releaserc.json, so the package-path input is required"
+            exit 1
+          fi
           PACKAGE_PATH=$(jq -r '.plugins[] | select(type == "array" and .[0] == "@semantic-release/npm") | .[1].pkgRoot' .releaserc.json)
         fi
         echo "PACKAGE_PATH=$PACKAGE_PATH" >> "$GITHUB_ENV"
@@ -115,6 +119,10 @@ jobs:
       run: |
         PACKAGE_PATH='${{ inputs.package-path }}'
         if [ -z "$PACKAGE_PATH" ]; then
+          if [ ! -f .releaserc.json ]; then
+            echo "::error::The repository has no .releaserc.json, so the package-path input is required"
+            exit 1
+          fi
           PACKAGE_PATH=$(jq -r '.plugins[] | select(type == "array" and .[0] == "@semantic-release/npm") | .[1].pkgRoot' .releaserc.json)
         fi
         echo "PACKAGE_PATH=$PACKAGE_PATH" >> "$GITHUB_ENV"
@@ -183,6 +191,10 @@ jobs:
       run: |
         PACKAGE_PATH='${{ inputs.package-path }}'
         if [ -z "$PACKAGE_PATH" ]; then
+          if [ ! -f .releaserc.json ]; then
+            echo "::error::The repository has no .releaserc.json, so the package-path input is required"
+            exit 1
+          fi
           PACKAGE_PATH=$(jq -r '.plugins[] | select(type == "array" and .[0] == "@semantic-release/npm") | .[1].pkgRoot' .releaserc.json)
         fi
         echo "PACKAGE_PATH=$PACKAGE_PATH" >> "$GITHUB_ENV"
