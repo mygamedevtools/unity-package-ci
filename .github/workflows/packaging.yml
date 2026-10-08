@@ -16,6 +16,11 @@ on:
         required: false
         default: ''
         type: string
+      unitypackage-rename-samples:
+        description: 'Rename Samples to Samples~ before opening Unity. Set false when the export method handles the archive layout itself.'
+        required: false
+        default: true
+        type: boolean
       publish:
         description: 'Push the upm branch and tag, and attach the packages to the release. False builds and verifies only.'
         required: false
@@ -35,9 +40,8 @@ on:
       UPM_SERVICE_ACCOUNT_KEY_SECRET:
         required: true
 
-# Every job runs the same "Prepare Package" step. It is inlined rather than a local
-# composite action because `uses: ./...` resolves against the caller's checkout, not
-# this repository.
+# Package preparation is inlined rather than a local composite action because
+# `uses: ./...` resolves against the caller's checkout, not this repository.
 jobs:
   package-upm:
     name: Package UPM
@@ -127,12 +131,14 @@ jobs:
         fi
         echo "PACKAGE_PATH=$PACKAGE_PATH" >> "$GITHUB_ENV"
         echo "PACKAGE_NAME=$(jq -r '.name' "$PACKAGE_PATH/package.json")" >> "$GITHUB_ENV"
-        jq '.version = "${{ inputs.version }}"
-            | (.samples[]?.path) |= sub("^Samples/"; "Samples~/")' \
+        jq --argjson hideSamples '${{ inputs.unitypackage-rename-samples }}' '
+            .version = "${{ inputs.version }}"
+            | if $hideSamples then (.samples[]?.path) |= sub("^Samples/"; "Samples~/") else . end' \
           "$PACKAGE_PATH/package.json" > package.json.tmp
         mv package.json.tmp "$PACKAGE_PATH/package.json"
 
     - name: 🔄 Rename Samples Folder
+      if: ${{ inputs.unitypackage-rename-samples }}
       run: |
         if [[ -d "$PACKAGE_PATH/Samples" ]]; then
           mv "$PACKAGE_PATH/Samples" "$PACKAGE_PATH/Samples~"
