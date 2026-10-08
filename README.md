@@ -38,6 +38,8 @@ Each package repository keeps only short caller workflows with its own triggers 
 | `unitypackage-rename-samples` | versioning, packaging | `true` | Rename `Samples` and manifest paths before opening Unity. Set `false` when the exporter maps archive paths itself, so development assemblies can still compile against samples. UPM packaging always hides samples. |
 | `publish` | packaging | `true` | `false` builds, signs and verifies everything without pushing the `upm` branch or touching a release. |
 
+The `.unitypackage` export method receives the resolved package directory as `-unityPackagePath` and the signing organization as `-unityPackageOrganizationId` through GameCI command-line parameters.
+
 A project that needs different packages on an older stream can keep `Packages/manifest.<stream>.json` (for example `manifest.6.0.json`) next to its manifest; the test workflow swaps it in for that stream and drops `Packages/packages-lock.json`, so that stream's editor resolves its own package versions.
 
 ### Secrets
