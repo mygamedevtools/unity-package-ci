@@ -22,6 +22,11 @@ on:
         required: false
         default: ''
         type: string
+      unitypackage-rename-samples:
+        description: 'Rename Samples to Samples~ before opening Unity. Set false when the export method handles the archive layout itself.'
+        required: false
+        default: true
+        type: boolean
     secrets:
       # PAT: the release commit targets a protected branch, which the default
       # GITHUB_TOKEN (github-actions[bot]) is not allowed to push to
@@ -133,4 +138,5 @@ jobs:
       version: ${{ needs.semantic-release.outputs.new_release_version }}
       package-path: ${{ needs.semantic-release.outputs.package-path }}
       unitypackage-export-method: ${{ inputs.unitypackage-export-method }}
+      unitypackage-rename-samples: ${{ inputs.unitypackage-rename-samples }}
     secrets: inherit

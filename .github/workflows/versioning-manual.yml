@@ -21,6 +21,11 @@ on:
         required: false
         default: ''
         type: string
+      unitypackage-rename-samples:
+        description: 'Rename Samples to Samples~ before opening Unity. Set false when the export method handles the archive layout itself.'
+        required: false
+        default: true
+        type: boolean
     secrets:
       UNITY_LICENSE:
         required: true
@@ -134,4 +139,5 @@ jobs:
       version: ${{ needs.calculate-version.outputs.version }}
       package-path: ${{ inputs.package-path }}
       unitypackage-export-method: ${{ inputs.unitypackage-export-method }}
+      unitypackage-rename-samples: ${{ inputs.unitypackage-rename-samples }}
     secrets: inherit
