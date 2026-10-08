@@ -106,14 +106,26 @@ jobs:
           # play mode suite take 6 to 18 minutes instead of seconds.
           customParameters: ${{ !inputs.graphics && '-nographics' || '' }}
 
-      - name: Upload Coverage to Codecov
+      # The Codecov uploader takes paths, not glob patterns, so list the results first.
+      - name: Find Coverage Results
+        id: coverage-files
         if: steps.changes.outputs.code == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          FILES=$(find '${{ steps.tests.outputs.coveragePath }}' -name '*.xml' | paste -sd, -)
+          if [ -z "$FILES" ]; then
+            echo "::warning::No coverage results in ${{ steps.tests.outputs.coveragePath }}"
+          fi
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Coverage to Codecov
+        if: steps.coverage-files.outputs.files != ''
         uses: codecov/codecov-action@v5
         with:
           name: Unity ${{ matrix.unityVersion }} - ${{ inputs.test-mode }}
           flags: unity-${{ steps.unity-version.outputs.major }}
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ${{ steps.tests.outputs.coveragePath }}/**/*.xml
+          files: ${{ steps.coverage-files.outputs.files }}
+          disable_search: true
 
       - name: Create issue on scheduled test failure
         uses: jayqi/failed-build-issue-action@v1
