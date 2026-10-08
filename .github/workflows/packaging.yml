@@ -157,6 +157,8 @@ jobs:
       with:
         targetPlatform: StandaloneLinux64
         buildMethod: ${{ inputs.unitypackage-export-method }}
+        # GameCI v4 does not forward arbitrary workflow env vars into the Editor container.
+        customParameters: -unityPackageOrganizationId ${{ secrets.UNITY_ORG_ID }}
         projectPath: "."
         allowDirtyBuild: true
       env:

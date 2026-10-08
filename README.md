@@ -49,7 +49,8 @@ Pass them with `secrets: inherit`. They are expected at the organization level.
 | `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD` | tests and `.unitypackage` export |
 | `CODECOV_TOKEN` | coverage upload |
 | `GH_TOKEN` | semantic-release, which pushes the release commit to a protected branch |
-| `UNITY_ORG_ID`, `UPM_SERVICE_ACCOUNT_KEY_ID`, `UPM_SERVICE_ACCOUNT_KEY_SECRET` | signing the UPM tarball |
+| `UNITY_ORG_ID` | signing organization for the UPM tarball and `.unitypackage` export (passed as `-unityPackageOrganizationId`) |
+| `UPM_SERVICE_ACCOUNT_KEY_ID`, `UPM_SERVICE_ACCOUNT_KEY_SECRET` | authenticating UPM tarball signing |
 
 ## Usage
 
