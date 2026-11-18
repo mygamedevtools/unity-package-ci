@@ -33,6 +33,11 @@ jobs:
           IMAGE_PREFIX="ubuntu"
           IMAGE_SUFFIX="linux-il2cpp-3"
 
+          # Every request uses `curl --retry 2`: it retries timeouts and HTTP 408, 429,
+          # 500, 502, 503 and 504 (not 404) after 1s, then 2s. A failed Unity API call
+          # can fail the job, and a failed Docker Hub check drops a stream, so a single
+          # transient error shouldn't be enough to do either.
+
           if [ -n "$STREAMS_INPUT" ]; then
             MODE="pinned"
             STREAM_LIST=$(echo "$STREAMS_INPUT" | tr ',' '\n' | xargs -n1 | sed -E 's/^6\./6000./' | sort -Vu | tr '\n' ' ')
@@ -42,7 +47,7 @@ jobs:
             # Unity's release API is the only source that labels a stream LTS.
             # limit caps at 25; that window spans several months, so every
             # actively-released stream appears in it.
-            LTS=$(curl -sf "$API?stream=LTS&limit=25&order=RELEASE_DATE_DESC") || {
+            LTS=$(curl -sf --retry 2 "$API?stream=LTS&limit=25&order=RELEASE_DATE_DESC") || {
               echo "::error::Unity release API query failed"
               exit 1
             }
@@ -50,7 +55,7 @@ jobs:
 
             # SUPPORTED is the stable non-LTS track; prereleases live in the separate
             # BETA/ALPHA streams, so its newest entry is the latest non-beta stream.
-            if SUP=$(curl -sf "$API?stream=SUPPORTED&limit=25&order=RELEASE_DATE_DESC"); then
+            if SUP=$(curl -sf --retry 2 "$API?stream=SUPPORTED&limit=25&order=RELEASE_DATE_DESC"); then
               STREAM_LIST+=$'\n'$(echo "$SUP" | jq -r '.results[].version | split(".")[0:2] | join(".")' | sort -V | tail -1)
             else
               echo "::warning::Could not query the non-LTS (SUPPORTED) stream; testing LTS only"
@@ -78,7 +83,7 @@ jobs:
             # No API flags those patches; Unity's public release API just leaves them
             # out. So candidates come only from that list (final releases, newest
             # first), and if it can't be reached we fail rather than guess.
-            PUBLIC=$(curl -sf "$API?version=${STREAM}&limit=25&order=RELEASE_DATE_DESC" | \
+            PUBLIC=$(curl -sf --retry 2 "$API?version=${STREAM}&limit=25&order=RELEASE_DATE_DESC" | \
               jq -r '.results[].version') || {
               echo "::error::Could not list public Unity $STREAM releases; refusing to guess, since the newest image may be an Extended LTS patch"
               exit 1
@@ -91,7 +96,7 @@ jobs:
             VERSION=""
             for CANDIDATE in $CANDIDATES; do
               TAG="${IMAGE_PREFIX}-${CANDIDATE}-${IMAGE_SUFFIX}"
-              CODE=$(curl -s -o /dev/null -w '%{http_code}' "https://registry.hub.docker.com/v2/repositories/unityci/editor/tags/${TAG}") || CODE="000"
+              CODE=$(curl -s --retry 2 -o /dev/null -w '%{http_code}' "https://registry.hub.docker.com/v2/repositories/unityci/editor/tags/${TAG}") || CODE="000"
               if [ "$CODE" = "200" ]; then
                 VERSION=$CANDIDATE
                 break
