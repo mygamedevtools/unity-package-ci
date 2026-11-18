@@ -23,7 +23,7 @@ Each package repository keeps only short caller workflows with its own triggers 
 | `versioning-semver.yml` | Runs semantic-release with the standard config (or the repository's own `.releaserc.json`), then packages the new version. |
 | `versioning-manual.yml` | Creates a `-pre.N` prerelease from a chosen bump type, then packages it. |
 | `packaging.yml` | Builds the `upm` branch and `upm/<version>` tag, a signed UPM tarball, and optionally a `.unitypackage`, and attaches them to the release. |
-| `detect-unity-versions.yml` | Resolves every active LTS stream plus the latest non-LTS stable stream to the newest `unityci/editor` image that is a public Unity release, so Extended LTS patches that need an Industry or Enterprise license are skipped. |
+| `detect-unity-versions.yml` | Resolves every active LTS stream plus the latest non-LTS stable stream to its newest public Unity release that has the `unityci/editor` image the test job pulls, so Extended LTS patches that need an Industry or Enterprise license are skipped. Fails if Unity's release API can't be reached. |
 
 ### Inputs
 
