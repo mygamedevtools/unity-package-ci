@@ -68,13 +68,29 @@ jobs:
             ESCAPED=${STREAM//./\\.}
 
             # Query per stream: tags are paginated by last_updated, so an unfiltered
-            # page only covers recently pushed streams. `name` keeps this stream on page 1.
-            TAGS=$(curl -sf "https://registry.hub.docker.com/v2/repositories/unityci/editor/tags?page_size=100&name=${STREAM}") || TAGS=""
+            # page only covers recently pushed streams. `name` narrows it to this stream.
+            # game-ci re-pushes older versions, so the newest ones can sit past page 1:
+            # follow `next` through every page. Docker Hub refuses anonymous requests
+            # past offset 1000 (page 10 at 100 per page), which also caps the loop.
+            URL="https://registry.hub.docker.com/v2/repositories/unityci/editor/tags?page_size=100&name=${STREAM}"
+            TAGS=""
+            PAGE=0
+            while [ -n "$URL" ] && [ "$PAGE" -lt 10 ]; do
+              PAGE=$((PAGE + 1))
+              if ! RESPONSE=$(curl -sf "$URL") || ! NAMES=$(echo "$RESPONSE" | jq -r '.results[]? | .name'); then
+                if [ "$PAGE" -gt 1 ]; then
+                  echo "::warning::Docker Hub tag page $PAGE for Unity $STREAM failed; using the first $((PAGE - 1)) page(s)"
+                fi
+                break
+              fi
+              TAGS+="$NAMES"$'\n'
+              URL=$(echo "$RESPONSE" | jq -r '.next // empty') || URL=""
+            done
 
             # Tags look like ubuntu-6000.0.66f1-android-3.2.1 or 6000.3.5f1-base-3
             IMAGES=""
             if [ -n "$TAGS" ]; then
-              IMAGES=$(echo "$TAGS" | jq -r '.results[]? | .name' | \
+              IMAGES=$(echo "$TAGS" | \
                 grep -E "${ESCAPED}\.[0-9]+f[0-9]" | \
                 sed -E "s/.*(${ESCAPED}\.[0-9]+f[0-9]+).*/\1/" | \
                 sort -Vu) || IMAGES=""
