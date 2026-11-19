@@ -1,0 +1,30 @@
+name: 🔎 Lint
+# No path filter: it takes seconds, and a filtered check can't be required,
+# since it never reports on a PR that doesn't touch the workflows.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    steps:
+    - name: 📂 Checkout
+      uses: actions/checkout@v5
+
+    # actionlint's own matcher, from its repository at the pinned version, so
+    # findings show up as annotations on the PR diff.
+    - name: 📌 Annotate findings
+      run: echo "::add-matcher::.github/actionlint-matcher.json"
+
+    # The image bundles shellcheck, so the run: blocks are checked too.
+    - name: 🔎 actionlint
+      uses: docker://rhysd/actionlint:1.7.12
+      with:
+        args: -color
