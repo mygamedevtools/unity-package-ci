@@ -21,10 +21,11 @@ jobs:
     steps:
       - name: Resolve Unity versions
         id: detect
+        env:
+          STREAMS_INPUT: ${{ inputs.version-streams }}
         run: |
           set -o pipefail
 
-          STREAMS_INPUT="${{ inputs.version-streams }}"
           API="https://services.api.unity.com/unity/editor/release/v1/releases"
 
           # The image game-ci/unity-test-runner@v4 pulls on a Linux runner: its game-ci
