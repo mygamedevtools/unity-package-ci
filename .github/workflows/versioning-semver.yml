@@ -68,8 +68,10 @@ jobs:
     # generated here from package-path, so every package releases the same way.
     - name: 🧩 Resolve Release Config
       id: config
+      env:
+        PACKAGE_PATH_INPUT: ${{ inputs.package-path }}
       run: |
-        PACKAGE_PATH='${{ inputs.package-path }}'
+        PACKAGE_PATH="$PACKAGE_PATH_INPUT"
 
         if [ -f .releaserc.json ]; then
           if [ -z "$PACKAGE_PATH" ]; then
@@ -122,9 +124,13 @@ jobs:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     - name: 📄 Summary
+      env:
+        PUBLISHED: ${{ steps.release.outputs.new_release_published }}
+        VERSION: ${{ steps.release.outputs.new_release_version }}
+        DRY_RUN: ${{ inputs.dryRun }}
       run: |
-        if [ '${{ steps.release.outputs.new_release_published }}' == 'true' ] && [ '${{ inputs.dryRun }}' == 'false' ]; then
-          echo "ℹ️ Released version \`${{ steps.release.outputs.new_release_version }}\`" | tee -a "$GITHUB_STEP_SUMMARY"
+        if [ "$PUBLISHED" == 'true' ] && [ "$DRY_RUN" == 'false' ]; then
+          echo "ℹ️ Released version \`$VERSION\`" | tee -a "$GITHUB_STEP_SUMMARY"
         else
           echo "ℹ️ No version released" | tee -a "$GITHUB_STEP_SUMMARY"
         fi

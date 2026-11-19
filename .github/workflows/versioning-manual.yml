@@ -57,6 +57,8 @@ jobs:
 
     - name: 🔢 Calculate version
       id: version
+      env:
+        BUMP_TYPE: ${{ inputs.bumpType }}
       run: |
         # Get the latest stable release tag (exclude prereleases)
         LATEST_STABLE_TAG=$(git tag --list --sort=-v:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n1)
@@ -69,7 +71,7 @@ jobs:
         IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_STABLE"
 
         # Calculate base version based on bump type
-        case "${{ inputs.bumpType }}" in
+        case "$BUMP_TYPE" in
           major)
             BASE_VERSION="$((MAJOR + 1)).0.0"
             ;;
@@ -101,8 +103,6 @@ jobs:
       id: release
       if: ${{ inputs.dryRun != true }}
       run: |
-        VERSION="${{ steps.version.outputs.version }}"
-
         # Determine if this is a prerelease
         PRERELEASE_FLAG=""
         if [[ "$VERSION" == *-* ]]; then
@@ -118,13 +118,17 @@ jobs:
         echo "released=true" >> "$GITHUB_OUTPUT"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION: ${{ steps.version.outputs.version }}
 
     - name: 📄 Summary
+      env:
+        VERSION: ${{ steps.version.outputs.version }}
+        RELEASED: ${{ steps.release.outputs.released }}
+        DRY_RUN: ${{ inputs.dryRun }}
       run: |
-        VERSION="${{ steps.version.outputs.version }}"
-        if [ '${{ steps.release.outputs.released }}' == 'true' ]; then
+        if [ "$RELEASED" == 'true' ]; then
           echo "ℹ️ Released version \`$VERSION\`" | tee -a "$GITHUB_STEP_SUMMARY"
-        elif [ '${{ inputs.dryRun }}' == 'true' ]; then
+        elif [ "$DRY_RUN" == 'true' ]; then
           echo "ℹ️ Dry run - would release version \`$VERSION\`" | tee -a "$GITHUB_STEP_SUMMARY"
         else
           echo "ℹ️ No version released" | tee -a "$GITHUB_STEP_SUMMARY"

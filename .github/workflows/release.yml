@@ -38,9 +38,13 @@ jobs:
         git push -f origin "refs/tags/$MAJOR"
 
     - name: 📄 Summary
+      env:
+        PUBLISHED: ${{ steps.release.outputs.new_release_published }}
+        TAG: ${{ steps.release.outputs.new_release_git_tag }}
+        MAJOR: v${{ steps.release.outputs.new_release_major_version }}
       run: |
-        if [ '${{ steps.release.outputs.new_release_published }}' == 'true' ]; then
-          echo "ℹ️ Released \`${{ steps.release.outputs.new_release_git_tag }}\` and moved \`v${{ steps.release.outputs.new_release_major_version }}\` to it" | tee -a "$GITHUB_STEP_SUMMARY"
+        if [ "$PUBLISHED" == 'true' ]; then
+          echo "ℹ️ Released \`$TAG\` and moved \`$MAJOR\` to it" | tee -a "$GITHUB_STEP_SUMMARY"
         else
           echo "ℹ️ No version released" | tee -a "$GITHUB_STEP_SUMMARY"
         fi

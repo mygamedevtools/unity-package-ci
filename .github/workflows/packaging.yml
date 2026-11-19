@@ -58,8 +58,10 @@ jobs:
 
     - name: 📦 Prepare Package
       shell: bash
+      env:
+        PACKAGE_PATH_INPUT: ${{ inputs.package-path }}
       run: |
-        PACKAGE_PATH='${{ inputs.package-path }}'
+        PACKAGE_PATH="$PACKAGE_PATH_INPUT"
         if [ -z "$PACKAGE_PATH" ]; then
           if [ ! -f .releaserc.json ]; then
             echo "::error::The repository has no .releaserc.json, so the package-path input is required"
@@ -73,7 +75,7 @@ jobs:
         # Samples are kept in `Samples` so the dev project compiles them, and the
         # packaging jobs rename the folder to `Samples~` to hide it in the shipped
         # package. The declared sample paths have to follow that rename.
-        jq '.version = "${{ inputs.version }}"
+        jq --arg version "$releaseVersion" '.version = $version
             | (.samples[]?.path) |= sub("^Samples/"; "Samples~/")' \
           "$PACKAGE_PATH/package.json" > package.json.tmp
         mv package.json.tmp "$PACKAGE_PATH/package.json"
@@ -120,8 +122,11 @@ jobs:
 
     - name: 📦 Prepare Package
       shell: bash
+      env:
+        PACKAGE_PATH_INPUT: ${{ inputs.package-path }}
+        RENAME_SAMPLES: ${{ inputs.unitypackage-rename-samples }}
       run: |
-        PACKAGE_PATH='${{ inputs.package-path }}'
+        PACKAGE_PATH="$PACKAGE_PATH_INPUT"
         if [ -z "$PACKAGE_PATH" ]; then
           if [ ! -f .releaserc.json ]; then
             echo "::error::The repository has no .releaserc.json, so the package-path input is required"
@@ -131,8 +136,8 @@ jobs:
         fi
         echo "PACKAGE_PATH=$PACKAGE_PATH" >> "$GITHUB_ENV"
         echo "PACKAGE_NAME=$(jq -r '.name' "$PACKAGE_PATH/package.json")" >> "$GITHUB_ENV"
-        jq --argjson hideSamples '${{ inputs.unitypackage-rename-samples }}' '
-            .version = "${{ inputs.version }}"
+        jq --argjson hideSamples "$RENAME_SAMPLES" --arg version "$releaseVersion" '
+            .version = $version
             | if $hideSamples then (.samples[]?.path) |= sub("^Samples/"; "Samples~/") else . end' \
           "$PACKAGE_PATH/package.json" > package.json.tmp
         mv package.json.tmp "$PACKAGE_PATH/package.json"
@@ -173,7 +178,7 @@ jobs:
     - name: 📎 Attach Unity Package to Release
       if: ${{ inputs.publish }}
       run: |
-        gh release upload ${{ env.releaseVersion }} ./*.unitypackage --clobber
+        gh release upload "$releaseVersion" ./*.unitypackage --clobber
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -194,8 +199,10 @@ jobs:
 
     - name: 📦 Prepare Package
       shell: bash
+      env:
+        PACKAGE_PATH_INPUT: ${{ inputs.package-path }}
       run: |
-        PACKAGE_PATH='${{ inputs.package-path }}'
+        PACKAGE_PATH="$PACKAGE_PATH_INPUT"
         if [ -z "$PACKAGE_PATH" ]; then
           if [ ! -f .releaserc.json ]; then
             echo "::error::The repository has no .releaserc.json, so the package-path input is required"
@@ -205,7 +212,7 @@ jobs:
         fi
         echo "PACKAGE_PATH=$PACKAGE_PATH" >> "$GITHUB_ENV"
         echo "PACKAGE_NAME=$(jq -r '.name' "$PACKAGE_PATH/package.json")" >> "$GITHUB_ENV"
-        jq '.version = "${{ inputs.version }}"
+        jq --arg version "$releaseVersion" '.version = $version
             | (.samples[]?.path) |= sub("^Samples/"; "Samples~/")' \
           "$PACKAGE_PATH/package.json" > package.json.tmp
         mv package.json.tmp "$PACKAGE_PATH/package.json"
@@ -224,11 +231,13 @@ jobs:
         echo "$HOME/.upm/bin" >> "$GITHUB_PATH"
 
     - name: 🔏 Pack & Sign UPM Package
+      env:
+        UNITY_ORG_ID: ${{ secrets.UNITY_ORG_ID }}
       run: |
         mkdir -p "$DIST_DIR"
         upm --version
         upm pack "$PACKAGE_PATH" \
-          --organization-id "${{ secrets.UNITY_ORG_ID }}" \
+          --organization-id "$UNITY_ORG_ID" \
           --destination "$DIST_DIR"
 
     - name: ✅ Verify Signed Package

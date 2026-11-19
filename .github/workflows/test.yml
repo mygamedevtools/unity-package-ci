@@ -62,7 +62,9 @@ jobs:
 
       - name: Extract Unity major version
         id: unity-version
-        run: echo "major=$(echo '${{ matrix.unityVersion }}' | grep -oE '^[0-9]+\.[0-9]+')" >> "$GITHUB_OUTPUT"
+        env:
+          UNITY_VERSION: ${{ matrix.unityVersion }}
+        run: echo "major=$(echo "$UNITY_VERSION" | grep -oE '^[0-9]+\.[0-9]+')" >> "$GITHUB_OUTPUT"
 
       # Restored by stream, so a new patch imports warm and skips Crunch (UUM-150055).
       - uses: actions/cache@v5
@@ -76,8 +78,9 @@ jobs:
       # Packages/manifest.<stream>.json next to its manifest, named either
       # manifest.6000.0.json or manifest.6.0.json.
       - name: Use stream-specific package manifest
+        env:
+          STREAM: ${{ steps.unity-version.outputs.major }}
         run: |
-          STREAM='${{ steps.unity-version.outputs.major }}'
           for candidate in "Packages/manifest.$STREAM.json" "Packages/manifest.${STREAM/#6000./6.}.json"; do
             if [ -f "$candidate" ]; then
               cp "$candidate" Packages/manifest.json
@@ -110,10 +113,12 @@ jobs:
       - name: Find Coverage Results
         id: coverage-files
         if: steps.changes.outputs.code == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          COVERAGE_PATH: ${{ steps.tests.outputs.coveragePath }}
         run: |
-          FILES=$(find '${{ steps.tests.outputs.coveragePath }}' -name '*.xml' | paste -sd, -)
+          FILES=$(find "$COVERAGE_PATH" -name '*.xml' | paste -sd, -)
           if [ -z "$FILES" ]; then
-            echo "::warning::No coverage results in ${{ steps.tests.outputs.coveragePath }}"
+            echo "::warning::No coverage results in $COVERAGE_PATH"
           fi
           echo "files=$FILES" >> "$GITHUB_OUTPUT"
 
