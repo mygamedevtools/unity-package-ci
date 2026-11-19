@@ -1,0 +1,28 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    # For GitHub Actions, "/" means .github/workflows. Dependabot skips
+    # `uses: docker://...` steps, so lint.yml's actionlint image is bumped by hand.
+    directory: /
+    schedule:
+      interval: monthly
+    # Each pin is a major tag (`@v5`), and Dependabot keeps that precision, so the
+    # only bumps it can propose are majors (`@v5` -> `@v6`).
+    #
+    # The prefix is `fix` because merging a bump releases a patch and moves `v1`,
+    # which is how every package picks it up. Every action release.yml uses is also
+    # used by a shared workflow, and Dependabot bumps a dependency in all files in
+    # one PR, so no bump here is internal-only.
+    commit-message:
+      prefix: fix
+      include: scope
+    groups:
+      actions:
+        patterns:
+          - "*"
+        # test.yml runs game-ci/unity-test-runner, and detect-unity-versions.yml
+        # hard-codes the image tag it pulls (`ubuntu-<version>-linux-il2cpp-3`).
+        # A new major can change that tag, so it gets its own PR. Check the tag
+        # before merging it.
+        exclude-patterns:
+          - game-ci/unity-test-runner
