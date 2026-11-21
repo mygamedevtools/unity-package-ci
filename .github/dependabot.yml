@@ -26,3 +26,7 @@ updates:
         # before merging it.
         exclude-patterns:
           - game-ci/unity-test-runner
+    ignore:
+      # See packaging.yml
+      - dependency-name: game-ci/unity-builder
+        versions: ["6.x"]
