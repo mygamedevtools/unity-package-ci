@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: 📂 Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
 
     # actionlint's own matcher, from its repository at the pinned version, so
     # findings show up as annotations on the PR diff.
