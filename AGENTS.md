@@ -16,7 +16,7 @@ Nothing here runs locally, and there is no test suite.
 
 - Run `actionlint` from the repository root (`brew install actionlint shellcheck`, or see its README). CI runs it, with shellcheck, on every PR.
 - For shell logic, copy the step's `run: |` block into a script, export the step's (and job's) `env:` variables with test values, and run it with `GITHUB_OUTPUT=$(mktemp) bash -e script.sh`. A stub `curl` on `PATH` can fake API failures. #11 and #12 did this and pasted the output into the PR as evidence.
-- For an end-to-end run, point a package repository's caller at your branch (`…/test.yml@<branch>`). `packaging.yml` with `publish: false` builds, signs and verifies without pushing the `upm` branch or touching a release.
+- For an end-to-end run, follow [docs/verifying-changes.md](docs/verifying-changes.md): it runs a package repository's callers against your commit without publishing anything. Do it for any change to `.github/workflows/`, including Dependabot bumps.
 
 ## Gotchas
 
