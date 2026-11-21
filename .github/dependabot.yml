@@ -26,3 +26,9 @@ updates:
         # before merging it.
         exclude-patterns:
           - game-ci/unity-test-runner
+    ignore:
+      # packaging.yml stays on unity-builder v5: v6 fails builds that use a custom
+      # export method (see the comment on its Export Unity Package step). Remove
+      # this once game-ci/cli accepts them.
+      - dependency-name: game-ci/unity-builder
+        versions: ["6.x"]

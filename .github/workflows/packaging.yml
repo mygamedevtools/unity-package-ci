@@ -157,8 +157,13 @@ jobs:
         key: Library-StandaloneLinux64
         restore-keys: Library-
 
+    # Stay on v5. v6 hands the build to game-ci/cli, which fails the step unless
+    # the log has "Build succeeded!" or a "# Build results #" block, which only
+    # game-ci's own default build method prints. A custom export method (this
+    # step's `buildMethod`) prints neither, so v6 fails it even when Unity exits 0.
+    # https://github.com/game-ci/cli/blob/main/src/model/unity/build-validation/unity-build-validation.ts
     - name: 📦 Export Unity Package
-      uses: game-ci/unity-builder@v4
+      uses: game-ci/unity-builder@v5
       with:
         targetPlatform: StandaloneLinux64
         buildMethod: ${{ inputs.unitypackage-export-method }}
