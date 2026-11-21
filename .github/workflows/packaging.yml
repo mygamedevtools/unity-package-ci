@@ -159,7 +159,7 @@ jobs:
 
     # v6 fails custom build methods: https://github.com/game-ci/unity-builder/issues/853
     - name: 📦 Export Unity Package
-      uses: game-ci/unity-builder@v6
+      uses: game-ci/unity-builder@v5
       with:
         targetPlatform: StandaloneLinux64
         buildMethod: ${{ inputs.unitypackage-export-method }}
