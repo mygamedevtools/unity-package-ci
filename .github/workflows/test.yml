@@ -48,12 +48,12 @@ jobs:
       matrix:
         unityVersion: ${{ fromJSON(needs.detect-versions.outputs.versions) }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           lfs: true
 
       - name: Check for code changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         id: changes
         with:
           filters: |
@@ -67,7 +67,7 @@ jobs:
         run: echo "major=$(echo "$UNITY_VERSION" | grep -oE '^[0-9]+\.[0-9]+')" >> "$GITHUB_OUTPUT"
 
       # Restored by stream, so a new patch imports warm and skips Crunch (UUM-150055).
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: Library
           key: Library-${{ steps.unity-version.outputs.major }}-${{ inputs.test-mode }}-${{ matrix.unityVersion }}
@@ -124,7 +124,7 @@ jobs:
 
       - name: Upload Coverage to Codecov
         if: steps.coverage-files.outputs.files != ''
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           name: Unity ${{ matrix.unityVersion }} - ${{ inputs.test-mode }}
           flags: unity-${{ steps.unity-version.outputs.major }}
